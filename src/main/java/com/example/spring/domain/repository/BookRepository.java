@@ -1,8 +1,10 @@
 package com.example.spring.domain.repository;
 
 import com.example.spring.domain.model.Book;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,6 +20,10 @@ import java.util.Optional;
  * JpaSpecificationExecutor: 동적 쿼리 (Specification 패턴) 지원
  */
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT b FROM Book b WHERE b.id = :id")
+    Optional<Book> findByIdWithLock(@Param("id") Long id);
 
     // ========== ISBN 관련 메서드 ==========
 

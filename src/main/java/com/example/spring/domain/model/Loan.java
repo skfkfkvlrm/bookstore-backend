@@ -84,44 +84,59 @@ public class Loan {
     private LocalDateTime updatedDate;
 
     /**
-     * 연체 여부 확인
+     * 연체 여부 확인 (파라미터 주입으로 테스트 용이성 확보)
      */
-    public boolean isOverdue() {
+    public boolean isOverdue(LocalDateTime now) {
         if (returnDate != null) {
             return false; // 이미 반납된 경우
         }
-        return LocalDateTime.now().isAfter(dueDate);
+        return now.isAfter(dueDate);
+    }
+
+    public boolean isOverdue() {
+        return isOverdue(LocalDateTime.now());
     }
 
     /**
-     * 연체 일수 계산
+     * 연체 일수 계산 (파라미터 주입 지원)
      */
-    public long getOverdueDays() {
-        if (!isOverdue()) {
+    public long getOverdueDays(LocalDateTime now) {
+        if (!isOverdue(now)) {
             return 0;
         }
-        return ChronoUnit.DAYS.between(dueDate, LocalDateTime.now());
+        return ChronoUnit.DAYS.between(dueDate, now);
+    }
+
+    public long getOverdueDays() {
+        return getOverdueDays(LocalDateTime.now());
     }
 
     /**
-     * 연체료 계산 (일당 1000원)
+     * 연체료 계산 (일당 1000원, 파라미터 주입 지원)
      */
-    public Money calculateOverdueFee() {
-        long overdueDays = getOverdueDays();
+    public Money calculateOverdueFee(LocalDateTime now) {
+        long overdueDays = getOverdueDays(now);
         if (overdueDays <= 0) {
             return Money.zero();
         }
         return Money.of(overdueDays * 1000);
     }
 
+    public Money calculateOverdueFee() {
+        return calculateOverdueFee(LocalDateTime.now());
+    }
+
     /**
-     * 도서 반납 처리
+     * 도서 반납 처리 (파라미터 주입 지원)
      */
-    public void returnBook() {
-        // returnDate 설정 전에 연체료를 먼저 계산해야 함
-        this.overdueFee = calculateOverdueFee();
-        this.returnDate = LocalDateTime.now();
+    public void returnBook(LocalDateTime now) {
+        this.overdueFee = calculateOverdueFee(now);
+        this.returnDate = now;
         this.status = LoanStatus.RETURNED;
+    }
+
+    public void returnBook() {
+        returnBook(LocalDateTime.now());
     }
 
     /**
@@ -158,23 +173,31 @@ public class Loan {
     }
 
     /**
-     * 반납 예정일까지 남은 일수
+     * 반납 예정일까지 남은 일수 (파라미터 주입 지원)
      */
-    public long getDaysUntilDue() {
-        if (this.returnDate != null || isOverdue()) {
+    public long getDaysUntilDue(LocalDateTime now) {
+        if (this.returnDate != null || isOverdue(now)) {
             return 0;
         }
-        return ChronoUnit.DAYS.between(LocalDateTime.now(), this.dueDate);
+        return ChronoUnit.DAYS.between(now, this.dueDate);
+    }
+
+    public long getDaysUntilDue() {
+        return getDaysUntilDue(LocalDateTime.now());
     }
 
     /**
-     * 연장 가능 시기인지 확인 (반납 예정일 3일 전부터 가능)
+     * 연장 가능 시기인지 확인 (반납 예정일 3일 전부터 가능, 파라미터 주입 지원)
      */
-    public boolean canExtendNow() {
-        if (this.returnDate != null || isOverdue()) {
+    public boolean canExtendNow(LocalDateTime now) {
+        if (this.returnDate != null || isOverdue(now)) {
             return false;
         }
-        return getDaysUntilDue() <= 3;
+        return getDaysUntilDue(now) <= 3;
+    }
+
+    public boolean canExtendNow() {
+        return canExtendNow(LocalDateTime.now());
     }
 
     /**
@@ -188,17 +211,21 @@ public class Loan {
     }
 
     /**
-     * 대여 상태 업데이트 (연체 확인)
+     * 대여 상태 업데이트 (연체 확인, 파라미터 주입 지원)
      */
-    public void updateStatus() {
+    public void updateStatus(LocalDateTime now) {
         if (this.returnDate != null) {
             this.status = LoanStatus.RETURNED;
-        } else if (isOverdue()) {
+        } else if (isOverdue(now)) {
             this.status = LoanStatus.OVERDUE;
-            this.overdueFee = calculateOverdueFee();
+            this.overdueFee = calculateOverdueFee(now);
         } else {
             this.status = LoanStatus.ACTIVE;
         }
+    }
+
+    public void updateStatus() {
+        updateStatus(LocalDateTime.now());
     }
 
     /**

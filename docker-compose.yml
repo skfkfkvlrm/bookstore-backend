@@ -14,7 +14,7 @@ services:
       MYSQL_ROOT_PASSWORD: localpassword
       MYSQL_DATABASE: daybyspring
     ports:
-      - "3306:3306"
+      - "3308:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-plocalpassword"]
       interval: 10s
@@ -27,7 +27,7 @@ services:
     profiles: [mysql]
     build: .
     ports:
-      - "8080:8080"
+      - "8090:8089"
     environment:
       SPRING_PROFILES_ACTIVE: dev-my
       DEV_MY_DB_URL: "jdbc:mysql://mysql-db:3306/daybyspring?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8"
@@ -59,7 +59,7 @@ services:
     profiles: [postgres]
     build: .
     ports:
-      - "8080:8080"
+      - "8090:8089"
     environment:
       SPRING_PROFILES_ACTIVE: dev-pg
       DEV_PG_DB_URL: jdbc:postgresql://postgres-db:5432/daybyspring

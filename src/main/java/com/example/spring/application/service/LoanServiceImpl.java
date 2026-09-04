@@ -65,8 +65,8 @@ public class LoanServiceImpl implements LoanService {
         Member member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다: " + request.getMemberId()));
 
-        // 도서 조회
-        Book book = bookRepository.findById(request.getBookId())
+        // 도서 조회 (동시 대여 방지를 위한 PESSIMISTIC_WRITE 락 적용)
+        Book book = bookRepository.findByIdWithLock(request.getBookId())
                 .orElseThrow(() -> new BookNotFoundException("도서를 찾을 수 없습니다: " + request.getBookId()));
 
         // 대여 가능 여부 검증
@@ -99,7 +99,7 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public List<LoanResponse> getAllLoans() {
-        return loanRepository.findAll().stream()
+        return loanRepository.findAllWithMemberAndBook().stream()
                 .map(LoanResponse::from)
                 .collect(Collectors.toList());
     }
@@ -511,8 +511,8 @@ public class LoanServiceImpl implements LoanService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다: " + memberId));
 
-        // 도서 조회
-        Book book = bookRepository.findById(request.getBookId())
+        // 도서 조회 (동시 대여 방지를 위한 PESSIMISTIC_WRITE 락 적용)
+        Book book = bookRepository.findByIdWithLock(request.getBookId())
                 .orElseThrow(() -> new BookNotFoundException("도서를 찾을 수 없습니다: " + request.getBookId()));
 
         // 대여 가능 여부 검증

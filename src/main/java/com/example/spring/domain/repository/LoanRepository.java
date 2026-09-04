@@ -16,25 +16,25 @@ import java.util.List;
 
 public interface LoanRepository extends JpaRepository<Loan, Long>, JpaSpecificationExecutor<Loan> {
 
-    @Query("SELECT l FROM Loan l WHERE l.member.id = :memberId ORDER BY l.loanDate DESC")
+    @Query("SELECT l FROM Loan l JOIN FETCH l.member JOIN FETCH l.book WHERE l.member.id = :memberId ORDER BY l.loanDate DESC")
     List<Loan> findByMemberId(@Param("memberId") Long memberId);
 
-    @Query("SELECT l FROM Loan l WHERE l.book.id = :bookId ORDER BY l.loanDate DESC")
+    @Query("SELECT l FROM Loan l JOIN FETCH l.member JOIN FETCH l.book WHERE l.book.id = :bookId ORDER BY l.loanDate DESC")
     List<Loan> findByBookId(@Param("bookId") Long bookId);
 
-    @Query("SELECT l FROM Loan l WHERE l.member.id = :memberId AND l.returnDate IS NULL ORDER BY l.loanDate DESC")
+    @Query("SELECT l FROM Loan l JOIN FETCH l.member JOIN FETCH l.book WHERE l.member.id = :memberId AND l.returnDate IS NULL ORDER BY l.loanDate DESC")
     List<Loan> findByMemberIdAndReturnDateIsNull(@Param("memberId") Long memberId);
 
     @Query("SELECT l FROM Loan l WHERE l.book.id = :bookId AND l.returnDate IS NULL")
     List<Loan> findByBookIdAndReturnDateIsNull(@Param("bookId") Long bookId);
 
-    @Query("SELECT l FROM Loan l WHERE l.dueDate < :currentDate AND l.returnDate IS NULL ORDER BY l.dueDate")
+    @Query("SELECT l FROM Loan l JOIN FETCH l.member JOIN FETCH l.book WHERE l.dueDate < :currentDate AND l.returnDate IS NULL ORDER BY l.dueDate")
     List<Loan> findOverdueLoans(@Param("currentDate") LocalDateTime currentDate);
 
-    @Query("SELECT l FROM Loan l WHERE l.returnDate IS NULL ORDER BY l.loanDate DESC")
+    @Query("SELECT l FROM Loan l JOIN FETCH l.member JOIN FETCH l.book WHERE l.returnDate IS NULL ORDER BY l.loanDate DESC")
     List<Loan> findByReturnDateIsNull();
 
-    @Query("SELECT l FROM Loan l WHERE l.loanDate BETWEEN :startDate AND :endDate ORDER BY l.loanDate DESC")
+    @Query("SELECT l FROM Loan l JOIN FETCH l.member JOIN FETCH l.book WHERE l.loanDate BETWEEN :startDate AND :endDate ORDER BY l.loanDate DESC")
     List<Loan> findByLoanDateBetween(@Param("startDate") LocalDateTime startDate,
                                      @Param("endDate") LocalDateTime endDate);
 
