@@ -53,8 +53,16 @@ public class Payment {
     @Column(unique = true)
     private String transactionId;
 
+    // PG 결제 식별 키 (토스페이먼츠 paymentKey 등)
+    @Column(name = "payment_key", length = 200)
+    private String paymentKey;
+
     // PG사 정보
     private String pgProvider;  // 예: 토스페이먼츠, 나이스페이, KG이니시스 등
+
+    // 매출전표/영수증 URL
+    @Column(name = "receipt_url", length = 500)
+    private String receiptUrl;
 
     // 카드 정보 (선택적)
     private String cardCompany;
@@ -92,11 +100,21 @@ public class Payment {
 
     // 비즈니스 로직 메서드
     public void complete(String transactionId) {
+        complete(transactionId, null, null);
+    }
+
+    public void complete(String transactionId, String paymentKey, String receiptUrl) {
         if (this.status != PaymentStatus.PENDING) {
             throw new PaymentException.InvalidPaymentStateException("대기 중인 결제만 완료 처리할 수 있습니다.");
         }
         this.status = PaymentStatus.COMPLETED;
         this.transactionId = transactionId;
+        if (paymentKey != null) {
+            this.paymentKey = paymentKey;
+        }
+        if (receiptUrl != null) {
+            this.receiptUrl = receiptUrl;
+        }
         this.paymentDate = LocalDateTime.now();
     }
 

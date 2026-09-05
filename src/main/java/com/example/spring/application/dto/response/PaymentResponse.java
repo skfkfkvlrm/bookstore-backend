@@ -26,7 +26,9 @@ public class PaymentResponse {
     private BigDecimal amount;
     private LocalDateTime paymentDate;
     private String transactionId;
+    private String paymentKey;
     private String pgProvider;
+    private String receiptUrl;
 
     // 카드 정보 (선택적)
     private String cardCompany;
@@ -60,7 +62,9 @@ public class PaymentResponse {
                 .amount(payment.getAmount() != null ? payment.getAmount().getAmount() : null)
                 .paymentDate(payment.getPaymentDate())
                 .transactionId(payment.getTransactionId())
+                .paymentKey(payment.getPaymentKey())
                 .pgProvider(payment.getPgProvider())
+                .receiptUrl(payment.getReceiptUrl())
                 .cardCompany(payment.getCardCompany())
                 .cardNumber(payment.getCardNumber())
                 .installmentMonths(payment.getInstallmentMonths())

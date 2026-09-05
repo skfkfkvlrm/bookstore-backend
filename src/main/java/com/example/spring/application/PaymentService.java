@@ -13,6 +13,7 @@ public interface PaymentService {
     List<PaymentResponse> findByStatus(PaymentStatus status);
 
     // 결제 처리
+    PaymentResponse confirmPayment(com.example.spring.application.dto.request.PaymentConfirmRequest request);
     PaymentResponse completePayment(Long paymentId, String transactionId);
     PaymentResponse failPayment(Long paymentId, String reason);
     PaymentResponse cancelPayment(Long paymentId);

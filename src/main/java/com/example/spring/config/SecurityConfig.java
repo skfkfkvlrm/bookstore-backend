@@ -45,6 +45,7 @@ public class SecurityConfig {
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // 로그인/회원가입 허용
+                        .requestMatchers("/api/payments/webhook/**", "/api/payments/webhook").permitAll() // PG사 웹훅 허용
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용
                         .requestMatchers("/api/client/**").hasAnyRole("USER", "ADMIN") // 사용자 API
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll() // Swagger 허용
