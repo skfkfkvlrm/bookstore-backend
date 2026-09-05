@@ -7,7 +7,16 @@ if (-not (Test-Path $logsDir)) {
     New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
 }
 
-Write-Host "=== [1/3] Checking and cleaning target ports (8089, 5175) ===" -ForegroundColor Cyan
+Write-Host "=== [0/3] Checking Docker MySQL Container ===" -ForegroundColor Cyan
+$dockerStatus = docker inspect -f '{{.State.Running}}' day_by_spring_sm_v2-mysql-db-1 2>$null
+if ($dockerStatus -ne "true") {
+    Write-Host "Starting day_by_spring_sm_v2-mysql-db-1 container..." -ForegroundColor Yellow
+    docker start day_by_spring_sm_v2-mysql-db-1 | Out-Null
+    Start-Sleep -Seconds 3
+}
+Write-Host "MySQL v2 (Port 3308) Ready!" -ForegroundColor Green
+
+Write-Host "`n=== [1/3] Checking and cleaning target ports (8089, 5175) ===" -ForegroundColor Cyan
 $targetPorts = @(8089, 5175)
 foreach ($p in $targetPorts) {
     $conns = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue
