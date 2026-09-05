@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll() // 로그인/회원가입 허용
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용
                         .requestMatchers("/api/client/**").hasAnyRole("USER", "ADMIN") // 사용자 API
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger 허용
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll() // Swagger 허용
                         .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )

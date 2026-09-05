@@ -6,6 +6,7 @@ target/
 /data/
 CLAUDE.md
 .env
+logs/
 
 ### STS ###
 .apt_generated
