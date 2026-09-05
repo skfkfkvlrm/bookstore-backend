@@ -13,4 +13,7 @@ public interface ApprovalService {
     ApprovalResponse getApprovalById(Long id);
     ApprovalResponse approve(Long approvalId, Long approverId);
     ApprovalResponse reject(Long approvalId, Long approverId, String reason);
+    ApprovalResponse cancel(Long approvalId, Long memberId);
+    ApprovalResponse markAsOrdered(Long approvalId, Long approverId);
+    ApprovalResponse changeStatus(Long approvalId, Long modifierId, ApprovalStatus newStatus, String reason);
 }

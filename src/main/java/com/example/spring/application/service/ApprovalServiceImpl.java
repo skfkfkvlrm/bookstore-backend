@@ -208,4 +208,135 @@ public class ApprovalServiceImpl implements ApprovalService {
         PurchaseApproval saved = approvalRepository.save(approval);
         return ApprovalResponse.from(saved);
     }
+
+    @Override
+    @Transactional
+    public ApprovalResponse cancel(Long approvalId, Long memberId) {
+        log.info("도서 구매 품의 상신 취소 요청 - 품의 ID: {}, 회원 ID: {}", approvalId, memberId);
+
+        PurchaseApproval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new BusinessException("APPROVAL_NOT_FOUND", "품의 문서를 찾을 수 없습니다: id=" + approvalId));
+
+        if (memberId != null && !approval.getApplicant().getId().equals(memberId)) {
+            throw new BusinessException("FORBIDDEN_ACTION", "본인이 상신한 품의서만 취소할 수 있습니다.");
+        }
+
+        if (approval.getStatus() != ApprovalStatus.PENDING) {
+            throw new BusinessException("INVALID_APPROVAL_STATE", "대기 중인 품의만 취소할 수 있습니다. 현재 상태: " + approval.getStatus());
+        }
+
+        approval.cancel();
+        PurchaseApproval saved = approvalRepository.save(approval);
+        log.info("도서 구매 품의 상신 취소 완료 - 품의 ID: {}", saved.getId());
+        return ApprovalResponse.from(saved);
+    }
+
+    @Override
+    @Transactional
+    public ApprovalResponse markAsOrdered(Long approvalId, Long approverId) {
+        log.info("도서 구매 품의 발주 완료 처리 - 품의 ID: {}, 관리자 ID: {}", approvalId, approverId);
+
+        PurchaseApproval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new BusinessException("APPROVAL_NOT_FOUND", "품의 문서를 찾을 수 없습니다: id=" + approvalId));
+
+        if (approval.getStatus() != ApprovalStatus.APPROVED) {
+            throw new BusinessException("INVALID_APPROVAL_STATE", "승인 완료된 품의만 발주 완료 처리할 수 있습니다. 현재 상태: " + approval.getStatus());
+        }
+
+        approval.markAsOrdered();
+        PurchaseApproval saved = approvalRepository.save(approval);
+        log.info("도서 구매 품의 발주 완료 처리 성공 - 품의 ID: {}", saved.getId());
+        return ApprovalResponse.from(saved);
+    }
+
+    @Override
+    @Transactional
+    public ApprovalResponse changeStatus(Long approvalId, Long modifierId, ApprovalStatus newStatus, String reason) {
+        log.info("도서 구매 품의 상태 직접 변경 - 품의 ID: {}, 관리자 ID: {}, 새 상태: {}, 사유: {}", approvalId, modifierId, newStatus, reason);
+
+        if (newStatus == null) {
+            throw new BusinessException("INVALID_STATUS", "변경할 상태가 지정되지 않았습니다.");
+        }
+
+        PurchaseApproval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new BusinessException("APPROVAL_NOT_FOUND", "품의 문서를 찾을 수 없습니다: id=" + approvalId));
+
+        Member modifier = modifierId != null ? memberRepository.findById(modifierId).orElse(null) : null;
+
+        if (newStatus == ApprovalStatus.APPROVED) {
+            Long createdOrderId = approval.getOrderId();
+            if (createdOrderId == null) {
+                try {
+                    Order order = Order.builder()
+                            .member(approval.getApplicant())
+                            .totalAmount(Money.of(approval.getTotalAmount()))
+                            .discountAmount(Money.zero())
+                            .orderDate(LocalDateTime.now())
+                            .status(OrderStatus.CONFIRMED)
+                            .confirmedDate(LocalDateTime.now())
+                            .build();
+
+                    for (PurchaseApprovalItem appItem : approval.getItems()) {
+                        Book book = null;
+                        if (appItem.getBookId() != null) {
+                            book = bookRepository.findById(appItem.getBookId()).orElse(null);
+                        }
+                        if (book == null) {
+                            book = bookRepository.findAll().stream().findFirst().orElse(null);
+                        }
+                        if (book != null) {
+                            OrderItem orderItem = OrderItem.builder()
+                                    .book(book)
+                                    .quantity(appItem.getQuantity())
+                                    .price(Money.of(appItem.getEstimatedPrice()))
+                                    .build();
+                            order.addOrderItem(orderItem);
+                        }
+                    }
+
+                    Payment payment = Payment.builder()
+                            .order(order)
+                            .method(PaymentMethod.BANK_TRANSFER)
+                            .status(PaymentStatus.COMPLETED)
+                            .amount(Money.of(approval.getTotalAmount()))
+                            .pgProvider("INSTITUTION_APPROVAL")
+                            .transactionId("APPR_ORDER_" + approval.getId())
+                            .paymentDate(LocalDateTime.now())
+                            .build();
+
+                    Delivery delivery = Delivery.builder()
+                            .order(order)
+                            .recipientName(approval.getApplicant().getName())
+                            .phoneNumber("010-0000-0000")
+                            .deliveryAddress(Address.of("06234", "도서관 행정지원실", approval.getDepartment() != null ? approval.getDepartment() : "품의 도서 수령처"))
+                            .deliveryMemo("전자결재 승인 건 (" + approval.getTitle() + ")")
+                            .build();
+
+                    order.attachPayment(payment);
+                    order.attachDelivery(delivery);
+
+                    Order savedOrder = orderRepository.save(order);
+                    createdOrderId = savedOrder.getId();
+                } catch (Exception e) {
+                    log.warn("주문 자동 생성 실패: {}", e.getMessage());
+                }
+            }
+            approval.approve(modifier, createdOrderId);
+        } else if (newStatus == ApprovalStatus.REJECTED) {
+            approval.reject(modifier, reason != null && !reason.trim().isEmpty() ? reason : "관리자 임의 상태 변경(반려)");
+        } else if (newStatus == ApprovalStatus.ORDERED) {
+            approval.markAsOrdered();
+        } else if (newStatus == ApprovalStatus.CANCELLED) {
+            approval.cancel();
+            if (reason != null && !reason.trim().isEmpty()) {
+                approval.updateStatus(ApprovalStatus.CANCELLED, modifier, reason);
+            }
+        } else {
+            approval.updateStatus(ApprovalStatus.PENDING, modifier, reason);
+        }
+
+        PurchaseApproval saved = approvalRepository.save(approval);
+        log.info("도서 구매 품의 상태 직접 변경 완료 - 품의 ID: {}, 최종 상태: {}", saved.getId(), saved.getStatus());
+        return ApprovalResponse.from(saved);
+    }
 }

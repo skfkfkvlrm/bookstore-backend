@@ -3,6 +3,7 @@ package com.example.spring.presentation.controller;
 import com.example.spring.application.ApprovalService;
 import com.example.spring.application.dto.request.CreateApprovalRequest;
 import com.example.spring.application.dto.request.RejectApprovalRequest;
+import com.example.spring.application.dto.request.UpdateApprovalStatusRequest;
 import com.example.spring.application.dto.response.ApprovalResponse;
 import com.example.spring.domain.model.ApprovalStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -111,6 +112,49 @@ public class ApprovalController {
 
         log.info("품의 반려 처리 - ID: {}, 결재자: {}, 사유: {}", id, approverId, request.getReason());
         ApprovalResponse response = approvalService.reject(id, approverId, request.getReason());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 품의 상신 취소 (회원 본인)
+     */
+    @Operation(summary = "품의 상신 취소 (회원)")
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ApprovalResponse> cancel(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long memberId) {
+
+        log.info("품의 상신 취소 처리 - ID: {}, 회원 ID: {}", id, memberId);
+        ApprovalResponse response = approvalService.cancel(id, memberId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 품의 발주 완료 처리 (관리자)
+     */
+    @Operation(summary = "품의 발주 완료 처리 (관리자)")
+    @PatchMapping("/{id}/order")
+    public ResponseEntity<ApprovalResponse> markAsOrdered(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Long approverId) {
+
+        log.info("품의 발주 완료 처리 - ID: {}, 결재자: {}", id, approverId);
+        ApprovalResponse response = approvalService.markAsOrdered(id, approverId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 품의 상태 직접 변경 (관리자)
+     */
+    @Operation(summary = "품의 상태 직접 변경 (관리자)")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ApprovalResponse> changeStatus(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Long modifierId,
+            @Valid @RequestBody UpdateApprovalStatusRequest request) {
+
+        log.info("품의 상태 직접 변경 - ID: {}, 관리자: {}, 대상 상태: {}, 사유: {}", id, modifierId, request.getStatus(), request.getReason());
+        ApprovalResponse response = approvalService.changeStatus(id, modifierId, request.getStatus(), request.getReason());
         return ResponseEntity.ok(response);
     }
 }

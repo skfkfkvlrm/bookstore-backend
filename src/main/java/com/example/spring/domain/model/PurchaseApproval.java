@@ -105,4 +105,25 @@ public class PurchaseApproval {
         this.rejectionReason = reason;
         this.reviewedDate = LocalDateTime.now();
     }
+
+    public void cancel() {
+        this.status = ApprovalStatus.CANCELLED;
+        this.reviewedDate = LocalDateTime.now();
+    }
+
+    public void markAsOrdered() {
+        this.status = ApprovalStatus.ORDERED;
+        this.reviewedDate = LocalDateTime.now();
+    }
+
+    public void updateStatus(ApprovalStatus newStatus, Member reviewer, String reason) {
+        this.status = newStatus;
+        if (reviewer != null) {
+            this.approver = reviewer;
+        }
+        if (reason != null && !reason.trim().isEmpty()) {
+            this.rejectionReason = reason;
+        }
+        this.reviewedDate = LocalDateTime.now();
+    }
 }
