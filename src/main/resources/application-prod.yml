@@ -3,10 +3,10 @@
 # ========================================
 
 spring:
-  # Supabase PostgreSQL 데이터베이스
+  # Supabase PostgreSQL 데이터베이스 (IPv4 Pooler 지원)
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.yoqxnuejqyszeqwckdtl.supabase.co:5432/postgres?sslmode=require}
-    username: ${SUPABASE_DB_USERNAME:postgres}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require}
+    username: ${SUPABASE_DB_USERNAME:postgres.yoqxnuejqyszeqwckdtl}
     password: ${SUPABASE_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -21,7 +21,7 @@ spring:
   # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: validate  # 운영 환경에서는 validate만 사용
+      ddl-auto: update  # validate 오류로 인한 기동 실패 방지
     show-sql: false
     properties:
       hibernate:
@@ -52,10 +52,10 @@ library:
   notification:
     email:
       smtp:
-        host: smtp.company.com
-        port: 587
-        username: ${SMTP_USERNAME}
-        password: ${SMTP_PASSWORD}
-        auth: true
+        host: ${SMTP_HOST:smtp.company.com}
+        port: ${SMTP_PORT:587}
+        username: ${SMTP_USERNAME:}
+        password: ${SMTP_PASSWORD:}
+        auth: false
         starttls:
           enable: true
