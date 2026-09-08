@@ -52,6 +52,7 @@ public class SecurityConfig {
 
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/**").permitAll() // 도서 목록 및 상세 조회 공개 허용
                         .requestMatchers("/api/auth/**").permitAll() // 로그인/회원가입 허용
                         .requestMatchers("/api/payments/webhook/**", "/api/payments/webhook").permitAll() // PG사 웹훅 허용
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 전용
