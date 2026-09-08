@@ -5,8 +5,8 @@
 spring:
   # Supabase PostgreSQL 데이터베이스
   datasource:
-    url: ${SUPABASE_DB_URL}
-    username: ${SUPABASE_DB_USERNAME}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.yoqxnuejqyszeqwckdtl.supabase.co:5432/postgres?sslmode=require}
+    username: ${SUPABASE_DB_USERNAME:postgres}
     password: ${SUPABASE_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
