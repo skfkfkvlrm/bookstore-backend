@@ -3,10 +3,10 @@
 # ========================================
 
 spring:
-  # Supabase PostgreSQL 데이터베이스 (IPv4 Pooler 지원)
+  # Supabase PostgreSQL 데이터베이스
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require}
-    username: ${SUPABASE_DB_USERNAME:postgres.yoqxnuejqyszeqwckdtl}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.yoqxnuejqyszeqwckdtl.supabase.co:5432/postgres?sslmode=require}
+    username: ${SUPABASE_DB_USERNAME:postgres}
     password: ${SUPABASE_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
