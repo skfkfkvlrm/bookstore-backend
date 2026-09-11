@@ -1,4 +1,13 @@
 spring:
+  profiles:
+    active: h2
   test:
     database:
       replace: none
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
