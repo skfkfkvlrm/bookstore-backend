@@ -31,11 +31,12 @@ class AopLoggingIntegrationTest {
                 .payment(PaymentRequest.builder()
                         .method(PaymentMethod.CREDIT_CARD)
                         .amount(BigDecimal.TEN)
+                        .cardNumber("9410-1234-5678-9999")
                         .build())
                 .delivery(DeliveryRequest.builder()
-                        .recipientName("Test")
-                        .phoneNumber("010-0000-0000")
-                        .address("Test Address")
+                        .recipientName("홍길동")
+                        .phoneNumber("010-1234-5678")
+                        .address("서울시 강남구 테헤란로 123")
                         .build())
                 .build();
 
