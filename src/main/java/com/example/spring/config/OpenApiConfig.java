@@ -123,8 +123,11 @@ public class OpenApiConfig {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8080")
-                                .description("개발 서버 (H2 Database)"),
+                                .url("http://localhost:8089")
+                                .description("개발 서버 (H2 Database - Port 8089)"),
+                        new Server()
+                                .url("/")
+                                .description("현재 호스트 서버 (Default)"),
                         new Server()
                                 .url("https://api.example.com")
                                 .description("운영 서버 (MySQL)")

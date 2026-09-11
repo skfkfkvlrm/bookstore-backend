@@ -36,7 +36,7 @@ $stdoutBackend = Join-Path $logsDir "backend.log"
 $stderrBackend = Join-Path $logsDir "backend-err.log"
 
 $bp = Start-Process -FilePath "java" `
-    -ArgumentList "-Xms128m", "-Xmx256m", "-jar", $jarPath `
+    -ArgumentList "-Xms256m", "-Xmx512m", "-Dserver.port=8089", "-jar", $jarPath `
     -RedirectStandardOutput $stdoutBackend `
     -RedirectStandardError $stderrBackend `
     -WorkingDirectory $backendDir `
